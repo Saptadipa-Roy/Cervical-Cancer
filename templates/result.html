@@ -2,23 +2,23 @@
 <html>
 <head>
     <title>Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<h2>Overall Risk: {{ overall }}</h2>
-<h3>Confidence: {{ confidence }}%</h3>
+<div class="container">
+    <h1>Result</h1>
 
-<hr>
+    <h2>{{ overall }}</h2>
+    <h3>Confidence: {{ confidence }}%</h3>
 
-<h3>Supporting Probabilities</h3>
+    <p>Biopsy: {{ biopsy }}%</p>
+    <p>Citology: {{ citology }}%</p>
+    <p>Schiller: {{ schiller }}%</p>
+    <p>Hinselmann: {{ hinselmann }}%</p>
 
-<p>Biopsy: {{ biopsy }}%</p>
-<p>Citology: {{ citology }}%</p>
-<p>Schiller: {{ schiller }}%</p>
-<p>Hinselmann: {{ hinselmann }}%</p>
-
-<br>
-<a href="/">Go Back</a>
+    <a href="/">Go Back</a>
+</div>
 
 </body>
 </html>
