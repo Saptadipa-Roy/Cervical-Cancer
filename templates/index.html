@@ -1,236 +1,56 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Cervical Cancer Prediction</title>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cervical Cancer Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-    <style>
-      body {
-        font-family: "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        margin: 0;
-        padding: 0;
-      }
+<div class="container">
+    <h1>🩺 Cervical Cancer Risk Predictor</h1>
 
-      .container {
-        max-width: 800px;
-        margin: 40px auto;
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
+    <form action="/predict" method="POST">
 
-      h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 20px;
-      }
+        {% for feature in feature_names %}
+        <div class="input-group">
+            <label>{{ feature }}</label>
 
-      h3 {
-        margin-top: 25px;
-        color: #555;
-        border-left: 5px solid #667eea;
-        padding-left: 10px;
-      }
+            <!-- YES / NO FIELDS -->
+            {% if 'Smokes' in feature 
+               or 'STDs' in feature 
+               or 'HPV' in feature 
+               or 'Dx' in feature 
+               or 'Hormonal Contraceptives' in feature %}
 
-      form {
-        width: 100%;
-      }
+                <select name="{{ feature }}" required>
+                    <option value="">Select</option>
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
 
-      input,
-      select {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0 12px 0;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        transition: 0.3s;
-      }
+            <!-- AGE -->
+            {% elif 'Age' in feature %}
+                <input type="number" name="{{ feature }}" min="10" max="100" required>
 
-      input:focus,
-      select:focus {
-        border-color: #667eea;
-        outline: none;
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
-      }
+            <!-- NUMBER OF PARTNERS -->
+            {% elif 'partners' in feature %}
+                <input type="number" name="{{ feature }}" min="0" max="20" required>
 
-      button {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: 0.3s;
-      }
+            <!-- YEARS -->
+            {% elif 'years' in feature %}
+                <input type="number" name="{{ feature }}" min="0" max="50" required>
 
-      button:hover {
-        background: linear-gradient(135deg, #5a67d8, #6b46c1);
-        transform: scale(1.02);
-      }
+            <!-- GENERAL NUMERIC -->
+            {% else %}
+                <input type="number" step="any" name="{{ feature }}" required>
+            {% endif %}
 
-      .section {
-        background: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-      }
-
-      .row {
-        display: flex;
-        gap: 10px;
-      }
-
-      .row input,
-      .row select {
-        flex: 1;
-      }
-
-      .note {
-        color: red;
-        font-size: 12px;
-        margin-top: 10px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="container">
-      <h2>🧬 Cervical Cancer Risk Prediction</h2>
-
-      <form action="/predict" method="post">
-        <div class="section">
-          <h3>Basic Info</h3>
-          <input type="number" name="Age" placeholder="Age" required />
         </div>
+        {% endfor %}
 
-        <div class="section">
-          <h3>Sexual History</h3>
-          <div class="row">
-            <input
-              type="number"
-              name="Number of sexual partners"
-              placeholder="Partners"
-            />
-            <input
-              type="number"
-              name="First sexual intercourse"
-              placeholder="First Age"
-            />
-          </div>
-          <input
-            type="number"
-            name="Num of pregnancies"
-            placeholder="Pregnancies"
-          />
-        </div>
+        <button type="submit">Predict Risk</button>
+    </form>
+</div>
 
-        <div class="section">
-          <h3>Smoking</h3>
-          <select name="Smokes">
-            <option value="0">Do you smoke? - No</option>
-            <option value="1">Yes</option>
-          </select>
-          <div class="row">
-            <input type="number" name="Smokes (years)" placeholder="Years" />
-            <input
-              type="number"
-              name="Smokes (packs/year)"
-              placeholder="Packs/year"
-            />
-          </div>
-        </div>
-
-        <div class="section">
-          <h3>Contraceptives</h3>
-          <select name="Hormonal Contraceptives">
-            <option value="0">Hormonal Contraceptives - No</option>
-            <option value="1">Yes</option>
-          </select>
-          <input
-            type="number"
-            name="Hormonal Contraceptives (years)"
-            placeholder="Years"
-          />
-
-          <select name="IUD">
-            <option value="0">IUD - No</option>
-            <option value="1">Yes</option>
-          </select>
-          <input type="number" name="IUD (years)" placeholder="Years" />
-        </div>
-
-        <div class="section">
-          <h3>STDs</h3>
-          <select name="STDs">
-            <option value="0">Any STDs - No</option>
-            <option value="1">Yes</option>
-          </select>
-
-          <input
-            type="number"
-            name="STDs (number)"
-            placeholder="Number of STDs"
-          />
-
-          <div class="row">
-            <select name="STDs:HPV">
-              <option value="0">HPV</option>
-              <option value="1">Yes</option>
-            </select>
-            <select name="STDs:HIV">
-              <option value="0">HIV</option>
-              <option value="1">Yes</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <select name="STDs:syphilis">
-              <option value="0">Syphilis</option>
-              <option value="1">Yes</option>
-            </select>
-            <select name="STDs:AIDS">
-              <option value="0">AIDS</option>
-              <option value="1">Yes</option>
-            </select>
-          </div>
-
-          <input
-            type="number"
-            name="STDs: Number of diagnosis"
-            placeholder="Diagnoses"
-          />
-        </div>
-
-        <div class="section">
-          <h3>Diagnosis</h3>
-          <div class="row">
-            <select name="Dx:Cancer">
-              <option value="0">Cancer</option>
-              <option value="1">Yes</option>
-            </select>
-            <select name="Dx:CIN">
-              <option value="0">CIN</option>
-              <option value="1">Yes</option>
-            </select>
-          </div>
-          <div class="row">
-            <select name="Dx:HPV">
-              <option value="0">HPV</option>
-              <option value="1">Yes</option>
-            </select>
-            <select name="Dx">
-              <option value="0">Any Diagnosis</option>
-              <option value="1">Yes</option>
-            </select>
-          </div>
-        </div>
-
-        <button type="submit">🔍 Predict Risk</button>
-      </form>
-    </div>
-  </body>
+</body>
 </html>
