@@ -4,58 +4,69 @@ import pickle
 
 app = Flask(__name__)
 
-# -----------------------------
-# Load Models
-# -----------------------------
+# Load models
 biopsy_model = pickle.load(open('models/biopsy_model.pkl', 'rb'))
 citology_model = pickle.load(open('models/citology_model.pkl', 'rb'))
 schiller_model = pickle.load(open('models/schiller_model.pkl', 'rb'))
 hinselmann_model = pickle.load(open('models/hinselmann_model.pkl', 'rb'))
 
 scaler = pickle.load(open('models/scaler.pkl', 'rb'))
+pca = pickle.load(open('models/pca.pkl', 'rb'))
+feature_names = pickle.load(open('models/features.pkl', 'rb'))
 
 # -----------------------------
-# Feature Names (MUST MATCH TRAINING)
-# -----------------------------
-feature_names = pickle.load(open('models/features.pkl', 'rb'))
-# -----------------------------
-# Routes
+# Home Route (IMPORTANT FIX)
 # -----------------------------
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', feature_names=feature_names)
 
-
+# -----------------------------
+# Prediction Route
+# -----------------------------
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get inputs
-        features = [float(request.form.get(name, 0)) for name in feature_names]
-        final_features = np.array(features).reshape(1, -1)
+        # Get input values
+        features = []
+        for name in feature_names:
+            value = request.form.get(name)
 
-        # Scale
-        final_features = scaler.transform(final_features)
+            if value is None or value == "":
+                value = 0
 
-        # Probabilities
-        biopsy_prob = biopsy_model.predict_proba(final_features)[0][1]
-        citology_prob = citology_model.predict_proba(final_features)[0][1]
-        schiller_prob = schiller_model.predict_proba(final_features)[0][1]
-        hinselmann_prob = hinselmann_model.predict_proba(final_features)[0][1]
+            features.append(float(value))
 
-        # FINAL RISK (Average)
-        avg_prob = (biopsy_prob + citology_prob + schiller_prob + hinselmann_prob) / 4
+        final_input = np.array(features).reshape(1, -1)
 
-        overall = "HIGH RISK 🔴" if avg_prob >= 0.5 else "LOW RISK 🟢"
-        confidence = round(avg_prob * 100, 2)
+        # Scale + PCA
+        scaled = scaler.transform(final_input)
+        final_data = pca.transform(scaled)
+
+        # Predictions
+        biopsy = biopsy_model.predict_proba(final_data)[0][1]
+        citology = citology_model.predict_proba(final_data)[0][1]
+        schiller = schiller_model.predict_proba(final_data)[0][1]
+        hinselmann = hinselmann_model.predict_proba(final_data)[0][1]
+
+        avg = (biopsy + citology + schiller + hinselmann) / 4
+
+        # Better threshold
+        if avg >= 0.6:
+            overall = "HIGH RISK 🔴"
+        elif avg >= 0.3:
+            overall = "MEDIUM RISK 🟠"
+        else:
+            overall = "LOW RISK 🟢"
 
         return render_template(
             'result.html',
             overall=overall,
-            confidence=confidence,
-            biopsy=round(biopsy_prob * 100, 2),
-            citology=round(citology_prob * 100, 2),
-            schiller=round(schiller_prob * 100, 2),
-            hinselmann=round(hinselmann_prob * 100, 2)
+            confidence=round(avg * 100, 2),
+            biopsy=round(biopsy * 100, 2),
+            citology=round(citology * 100, 2),
+            schiller=round(schiller * 100, 2),
+            hinselmann=round(hinselmann * 100, 2)
         )
 
     except Exception as e:
