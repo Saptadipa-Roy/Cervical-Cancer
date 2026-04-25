@@ -5,14 +5,14 @@ import pickle
 app = Flask(__name__)
 
 # Load models
-biopsy_model = pickle.load(open('models/biopsy_model.pkl', 'rb'))
-citology_model = pickle.load(open('models/citology_model.pkl', 'rb'))
-schiller_model = pickle.load(open('models/schiller_model.pkl', 'rb'))
-hinselmann_model = pickle.load(open('models/hinselmann_model.pkl', 'rb'))
+biopsy_model = pickle.load(open('Models/biopsy_model.pkl', 'rb'))
+citology_model = pickle.load(open('Models/citology_model.pkl', 'rb'))
+schiller_model = pickle.load(open('Models/schiller_model.pkl', 'rb'))
+hinselmann_model = pickle.load(open('Models/hinselmann_model.pkl', 'rb'))
 
-scaler = pickle.load(open('models/scaler.pkl', 'rb'))
-pca = pickle.load(open('models/pca.pkl', 'rb'))
-feature_names = pickle.load(open('models/features.pkl', 'rb'))
+scaler = pickle.load(open('Models/scaler.pkl', 'rb'))
+pca = pickle.load(open('Models/pca.pkl', 'rb'))
+feature_names = pickle.load(open('Models/features.pkl', 'rb'))
 
 # -----------------------------
 # Home Route (IMPORTANT FIX)
